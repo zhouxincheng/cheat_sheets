@@ -43,6 +43,7 @@
 
 3. ```plain
    # 对比三种不同 diff 形式
+   $ git diff HEAD # (-- filename //查看某个文件)
    @@ -1 +1,3 @@
    -a = 1  # 已 staged
    +a = 2  # 已 staged
@@ -72,7 +73,9 @@
 2. git reset "staged_file": 将 staged file 改成 unstaged 的状态
 3. git reset  --hard HEAD^: 回到上一个 commit, ^的个数代表往回走几个 commit, 也可以表示成 HEAD~N
 4. git reset --hard commit_id: HEAD 指针指向 commit-id 的那个 commit
-5. git reflog: 所有的 HEAD 的改动, 以便返回 reset 之前的commit
+5. git reflog: 记录你的每一次命令, 以便返回 reset 之前的commit
+6. git reset HEAD file: 把暂存区的修改回退到工作区
+7. git checkout -- file: 将工作区的内容丢弃,
 
 #### 文件回溯
 
@@ -100,3 +103,42 @@
 1. git stash: 将手头的工作保存到stash空间, 当成缓存,转手去做其他事情
 2. git stash list : 查看在 stash 中缓存有哪些内容
 3. git stash pop: 提取这个缓存并继续工作
+
+
+
+## 廖雪峰教程--情景笔记
+
+#### 撤销修改
+
+1. 场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令`git checkout -- file`, **其实是用版本库里的版本(或暂存区)替换工作区的版本**
+
+2. 场景2：当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令`git reset HEAD <file> `，就回到了场景1，第二步按场景1操作。
+
+3. 场景3：已经提交了不合适的修改到版本库时，想要撤销本次提交，`git reset --hard commit_id` (HEAD 表示当前版本, ^/~N表示之前的版本)，不过前提是没有推送到远程库。
+4. 穿梭前，用`git log`可以查看提交历史，以便确定要回退到哪个版本。
+5. 要重返未来，用`git reflog`查看命令历史，以便确定要回到未来的哪个版本。
+6. 场景4: 从版本库中删除该文件, 先显示的删除某个文件, 然后再版本库中`git rm text.txt`
+7. 场景5: 将本地仓库与远程仓库关联起来 `git remote add origin git@server-name:path/repo-name.git`
+8. 场景6: 关联好仓库之后, 将本地的 master 分支推送到远程仓库的 master 上 `git push -u origin master` , -u 参数将本地 master 与 远程 master 进行绑定, 方便后序操作
+9. 场景7: clone github远程仓库时, Git支持多种协议，包括`https`，但通过`ssh`支持的原生`git`协议速度最快, 在某些只开放http端口的公司内部就无法使用`ssh`协议而只能用`https`.
+10. 场景8: 当手头工作没有完成时，先把工作现场`git stash`一下，然后去修复bug，修复后，再`git stash pop`，回到工作现场；
+11. 场景9: 在master分支上修复的bug，想要合并到当前dev分支，可以用`git cherry-pick `命令，把bug提交的修改“复制”到当前分支，避免重复劳动
+12. 场景10: 丢弃一个没有被合并过的分支，可以通过`git branch -D `强行删除
+13. 场景11: 本地分支和远程分支关联 `git branch --set-upstream-to <branch-name> origin/<branch-name>` 
+14. 场景12: 将远程仓库的某个分支拉取,并关联到本地的分支`git checkout -b dev origin/dev`
+15. 场景13: 多人协同合作
+    1. git pull # 拉取最新
+    2. 解决冲突
+    3. git push origin <branch-name>
+16. 场景14: 标签管理
+    1. tag就是一个让人容易记住的有意义的名字，它跟某个commit绑在一起, 也是版本库的快找
+    2. git tag <tag_name> (commit_id): 默认标签是打在最新提交的commit上的, 或者指定的 commit id 上
+    3. 'git tag'查看标签, `git show <tag_name>`查看标签信息
+    4. 命令`git tag -a  -m "blablabla..."`可以指定标签信息
+    5. 推送某个标签到远程 `git push origin <tagname>`(--tags 一次性推送)
+    6. 命令`git tag -d `可以删除一个本地标签
+    7. 命令`git push origin :refs/tags/`可以删除一个远程标签
+17. 自定义 git
+    1. 忽略特殊文件: 编写.gitignore, 并将其加入仓库中; `git check-ignore -V file` 检查哪个规则写错
+    2. 配置别名: git config --global alias.st status
+    3. Git配置文件放在用户主目录下的一个隐藏文件`.gitconfig`, 可以直接修改这个文件
